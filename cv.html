@@ -2,8 +2,10 @@
 <html lang="my">
 <head>
     <meta charset="UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV Form Generator Pro</title>
+    
+    <title>CV Form Generator Pro (Responsive)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -162,7 +164,6 @@
         .form-row {
             display: flex;
             padding: 10px 0; /* နေရာ နည်းနည်း ချိန်ပါမယ် */
-            /* border-bottom: 1px dotted #aaa; <-- ဒီဟာကို ဖြုတ်လိုက်ပါပြီ */
             align-items: flex-start; 
         }
         .form-row .label {
@@ -177,13 +178,67 @@
             padding-left: 10px;
             padding-bottom: 4px; /* မျဉ်းပြတ်နဲ့ စာ ကြား နေရာချန်ပါမယ် */
             min-height: 26px; /* အမြင့် နည်းနည်း ချိန်ပါမယ် */
-            
-            /* Long text တွေ line break ကျအောင် */
             white-space: pre-wrap; 
             word-break: break-word;
-            
-            /* မျဉ်းပြတ် အသစ် ထည့်ပါပြီ */
             border-bottom: 1px dashed #666; 
+        }
+
+
+        /* ===================================== */
+        /* !!! NEW RESPONSIVE (MOBILE) STYLES !!! */
+        /* ===================================== */
+
+        /* Tablet နှင့် Mobile Phone များအတွက် (1300px အောက်) */
+        @media (max-width: 1300px) { 
+            body {
+                padding: 15px; /* Body padding လျှော့ပါမယ် */
+            }
+        
+            main {
+                /* Form နဲ့ Preview ကို အပေါ်အောက် ဆင့်ပါမယ် */
+                flex-direction: column;
+                align-items: center; /* အလယ်မှာ ပို့ထားပါမယ် */
+                gap: 30px;
+            }
+
+            #input-panel {
+                position: static; /* Sticky ကို ဖြုတ်ပါမယ် */
+                width: 100%;
+                max-width: 700px; /* Form ကို နည်းနည်း ပိုကျယ်ခွင့်ပေးပါမယ် */
+                max-height: none; /* Height ကန့်သတ်တာ ဖြုတ်ပါမယ် */
+                top: 0; 
+            }
+
+            .form-container {
+                max-height: none; /* Form အတွင်း scroll ကို ဖြုတ်ပါမယ် */
+            }
+
+            #preview-panel {
+                /* A4 preview ကို ဘေးတိုက် scroll ဆွဲလို့ရအောင် လုပ်ပါမယ် */
+                width: 100%;
+                overflow-x: auto;
+                
+                /* Mobile မှာ scroll ဆွဲရလွယ်အောင် */
+                -webkit-overflow-scrolling: touch;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            }
+
+            #cv-preview {
+                /* Preview က A4 size (210mm) အတိုင်း ရှိနေရပါမယ် */
+                margin: 1px; /* border မပြတ်အောင် နေရာနည်းနည်းထားပါ */
+                flex-shrink: 0; /* ချုံ့မသွားအောင် */
+            }
+        }
+
+        /* Mobile Phone အသေးများအတွက် (480px အောက်) */
+        @media (max-width: 480px) {
+             body {
+                padding: 10px; /* Padding ထပ်လျှော့ပါမယ် */
+            }
+            #input-panel {
+                padding: 20px; /* Form အတွင်း padding လျှော့ပါမယ် */
+            }
         }
         
     </style>
@@ -266,7 +321,7 @@
         <section id="preview-panel">
             <div id="cv-preview">
                 <div class="cv-header">
-                    <h1>CURRICULUM VITAE FORM</h1>
+                    <h1>CURRICULUM VITAE</h1>
                     <img id="previewImage" src="" alt="Profile Photo">
                 </div>
                 
