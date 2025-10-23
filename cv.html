@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Form Generator Pro</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* ============================ */
+        /* Global Styles        */
+        /* ============================ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Padauk', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 30px;
+        }
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+        }
+        
+        /* ============================ */
+        /* အပိုင်း (က) - Input Form   */
+        /* ============================ */
+        #input-panel {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            
+            /* Nice UX: Form ကို scroll လုပ်ရင် ကပ်ပါနေအောင် */
+            position: sticky;
+            top: 30px;
+        }
+        #input-panel h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #0056b3;
+        }
+        .form-container {
+            max-height: 70vh; /* Form ရှည်လာရင် scroll ကျအောင် */
+            overflow-y: auto;
+            padding-right: 15px; /* Scrollbar အတွက် နေရာ */
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="file"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dcdcdc;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: 'Padauk', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #006aff;
+            box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
+            outline: none;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Download Button */
+        #downloadBtn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #006aff, #0049c6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Padauk', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s, transform 0.1s;
+        }
+        #downloadBtn:hover {
+            background: linear-gradient(90deg, #005ce0, #003da8);
+        }
+        #downloadBtn:active {
+            transform: scale(0.99);
+        }
+
+        /* =========================================== */
+        /* အပိုင်း (ခ) - PDF Preview (*** UPDATED ***)  */
+        /* =========================================== */
+        #preview-panel {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        /* A4 Paper Size (210mm x 297mm) */
+        #cv-preview {
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 25mm; /* 1 inch margin */
+            font-size: 12pt; /* နည်းနည်း ပိုကြီးလိုက်ပါမယ် */
+            line-height: 1.8;
+            color: #000;
+        }
+        
+        /* CV Header */
+        .cv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .cv-header h1 {
+            font-size: 20pt;
+            font-weight: 700;
+            color: #000;
+            text-transform: uppercase;
+        }
+        #previewImage {
+            width: 110px;
+            height: 140px;
+            border: 1px solid #ccc;
+            object-fit: cover;
+            background-color: #f0f0f0;
+        }
+        
+        /* CV Form Rows (*** UPDATED STYLES ***) */
+        .form-row {
+            display: flex;
+            padding: 10px 0; /* နေရာ နည်းနည်း ချိန်ပါမယ် */
+            /* border-bottom: 1px dotted #aaa; <-- ဒီဟာကို ဖြုတ်လိုက်ပါပြီ */
+            align-items: flex-start; 
+        }
+        .form-row .label {
+            width: 50%; /* ဘယ်ဘက် 50% */
+            font-weight: 700;
+            padding-right: 20px; /* Label နဲ့ value ကြား နေရာချန်ပါမယ် */
+            line-height: 1.6;
+        }
+        .form-row .value {
+            width: 50%; /* ညာဘက် 50% */
+            font-weight: 400;
+            padding-left: 10px;
+            padding-bottom: 4px; /* မျဉ်းပြတ်နဲ့ စာ ကြား နေရာချန်ပါမယ် */
+            min-height: 26px; /* အမြင့် နည်းနည်း ချိန်ပါမယ် */
+            
+            /* Long text တွေ line break ကျအောင် */
+            white-space: pre-wrap; 
+            word-break: break-word;
+            
+            /* မျဉ်းပြတ် အသစ် ထည့်ပါပြီ */
+            border-bottom: 1px dashed #666; 
+        }
+        
+    </style>
+</head>
+<body>
+
+    <main>
+        <section id="input-panel">
+            <h2>CV Form Generator</h2>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="imageInput">Profile ပုံ</label>
+                    <input type="file" id="imageInput" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="nameInput">၁။ Name (အမည်)</label>
+                    <input type="text" id="nameInput" data-target="previewName">
+                </div>
+                <div class="form-group">
+                    <label for="fatherNameInput">၂။ Father Name (အဖအမည်)</label>
+                    <input type="text" id="fatherNameInput" data-target="previewFatherName">
+                </div>
+                <div class="form-group">
+                    <label for="motherNameInput">၃။ Mother Name (အမိအမည်)</label>
+                    <input type="text" id="motherNameInput" data-target="previewMotherName">
+                </div>
+                <div class="form-group">
+                    <label for="dobInput">၄။ Date of birth (မွေးသက္ကရာဇ်)</label>
+                    <input type="date" id="dobInput" data-target="previewDob">
+                </div>
+                <div class="form-group">
+                    <label for="nrcInput">၅။ N.R.C No (နိုင်ငံသားမှတ်ပုံတင်နံပါတ်)</label>
+                    <input type="text" id="nrcInput" data-target="previewNrc">
+                </div>
+                <div class="form-group">
+                    <label for="nationalityInput">၆။ Nationality (နိုင်ငံသား)</label>
+                    <input type="text" id="nationalityInput" data-target="previewNationality">
+                </div>
+                <div class="form-group">
+                    <label for="religionInput">၇။ Regilion (ကိုးကွယ်သည့်ဘာသာ)</label>
+                    <input type="text" id="religionInput" data-target="previewReligion">
+                </div>
+                <div class="form-group">
+                    <label for="eduInput">၈။ Educational Qualification (ပညာအရည်အချင်း)</label>
+                    <textarea id="eduInput" data-target="previewEdu"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="langInput">၉။ Language Efficiency (တတ်ကျွမ်းသည့်ဘာသာရပ်)</label>
+                    <input type="text" id="langInput" data-target="previewLang">
+                </div>
+                <div class="form-group">
+                    <label for="expInput">၁၀။ Working Experience (လုပ်ငန်းအတွေ့အကြုံ)</label>
+                    <textarea id="expInput" data-target="previewExp"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="addressInput">၁၁။ Permanent Address (အမြဲတမ်းနေရပ်လိပ်စာ)</label>
+                    <textarea id="addressInput" data-target="previewAddress"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="phoneInput">၁၂။ Phone Number (ဖုန်းနံပါတ်)</label>
+                    <input type="text" id="phoneInput" data-target="previewPhone">
+                </div>
+                <div class="form-group">
+                    <label for="maritalInput">၁၃။ Martial Status (အိမ်ထောင်ရှိ/မရှိ)</label>
+                    <select id="maritalInput" data-target="previewMarital">
+                        <option value="">- ရွေးချယ်ပါ -</option>
+                        <option value="မရှိ">မရှိ (Single)</option>
+                        <option value="ရှိ">ရှိ (Married)</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="salaryInput">၁၄။ မျှော်မှန်းလစာ</label>
+                    <input type="text" id="salaryInput" data-target="previewSalary">
+                </div>
+            </div>
+            
+            <button id="downloadBtn">Download PDF</button>
+        </section>
+
+        <section id="preview-panel">
+            <div id="cv-preview">
+                <div class="cv-header">
+                    <h1>CURRICULUM VITAE FORM</h1>
+                    <img id="previewImage" src="" alt="Profile Photo">
+                </div>
+                
+                <div class="form-row">
+                    <span class="label">၁။ Name (အမည်)</span>
+                    <span class="value" id="previewName"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၂။ Father Name (အဖအမည်)</span>
+                    <span class="value" id="previewFatherName"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၃။ Mother Name (အမိအမည်)</span>
+                    <span class="value" id="previewMotherName"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၄။ Date of birth (မွေးသက္ကရာဇ်)</span>
+                    <span class="value" id="previewDob"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၅။ N.R.C No (နိုင်ငံသားမှတ်ပုံတင်နံပါတ်)</span>
+                    <span class="value" id="previewNrc"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၆။ Nationality (နိုင်ငံသား)</span>
+                    <span class="value" id="previewNationality"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၇။ Regilion (ကိုးကွယ်သည့်ဘာသာ)</span>
+                    <span class="value" id="previewReligion"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၈။ Educational Qualification (ပညာအရည်အချင်း)</span>
+                    <span class="value" id="previewEdu"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၉။ Language Efficiency (တတ်ကျွမ်းသည့်ဘာသာရပ်)</span>
+                    <span class="value" id="previewLang"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၁၀။ Working Experience (လုပ်ငန်းအတွေ့အကြုံ)</span>
+                    <span class="value" id="previewExp"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၁၁။ Permanent Address (အမြဲတမ်းနေရပ်လိပ်စာ)</span>
+                    <span class="value" id="previewAddress"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၁၂။ Phone Number (ဖုန်းနံပါတ်)</span>
+                    <span class="value" id="previewPhone"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၁၃။ Martial Status (အိမ်ထောင်ရှိ/မရှိ)</span>
+                    <span class="value" id="previewMarital"></span>
+                </div>
+                <div class="form-row">
+                    <span class="label">၁၄။ မျှော်မှန်းလစာ</span>
+                    <span class="value" id="previewSalary"></span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+    <script>
+        // =============================================
+        //         အပိုင်း (ဂ) - JavaScript Logic
+        // =============================================
+        
+        const { jsPDF } = window.jspdf;
+
+        // --- 1. Real-time Data Update ---
+        
+        // input, textarea, select အားလုံးကို ယူပါ
+        const allInputs = document.querySelectorAll('#input-panel [data-target]');
+        
+        allInputs.forEach(input => {
+            // 'input' event က စာရိုက်လိုက်တိုင်း၊ 'change' event က select ရွေးလိုက်တိုင်း
+            const eventType = (input.tagName === 'SELECT') ? 'change' : 'input';
+            
+            input.addEventListener(eventType, (e) => {
+                const targetId = e.target.dataset.target;
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    // textarea အတွက် line break တွေ မှန်အောင် textContent သုံးပါတယ်
+                    targetElement.textContent = e.target.value;
+                }
+            });
+        });
+
+        // --- 2. Image Preview Update ---
+        
+        const imageInput = document.getElementById('imageInput');
+        const previewImage = document.getElementById('previewImage');
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImage.src = event.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- 3. PDF Download Function ---
+        
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const element = document.getElementById('cv-preview');
+            
+            // Loading indicator (UX အတွက်)
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Generating PDF...';
+            btn.disabled = true;
+
+            // html2canvas options (Quality ပိုကောင်းအောင်)
+            const options = {
+                scale: 2, // 2x resolution
+                useCORS: true,
+                logging: false,
+                width: element.offsetWidth,
+                height: element.offsetHeight
+            };
+
+            html2canvas(element, options).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                // jsPDF ကို A4 size (mm) နဲ့ ဖန်တီးပါ
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth(); // A4 width in mm
+                const pdfHeight = pdf.internal.pageSize.getHeight(); // A4 height in mm
+                
+                // ပုံကို PDF ထဲကို A4 page အပြည့် ထည့်ပါ
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                
+                pdf.save("my-cv.pdf");
+                
+                // Button ကို မူလအတိုင်း ပြန်ထားပါ
+                btn.textContent = originalText;
+                btn.disabled = false;
+                
+            }).catch(err => {
+                console.error("Error generating PDF:", err);
+                alert("Sorry, an error occurred while generating the PDF.");
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        });
+
+    </script>
+</body>
+</html>
